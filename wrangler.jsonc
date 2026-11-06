@@ -1,0 +1,117 @@
+/**
+ * GovZones public web Worker (govzones.com): SSR pages + public /api/v1 directory API.
+ *
+ * Top level = LOCAL DEVELOPMENT (placeholder IDs, dev gateway bindings).
+ * Deploy with `--env staging` or `--env production`; bindings are re-declared there on purpose
+ * so no dev-only binding or flag can be inherited by a deployed environment.
+ */
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "govzones-web-dev",
+  "main": "./workers/web/app.ts",
+  "compatibility_date": "2026-10-23",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "upload_source_maps": true,
+  "vars": {
+    "ENVIRONMENT": "development",
+    "PUBLIC_ORIGIN": "http://govzones.localhost:5173",
+    "ACCOUNTS_ORIGIN": "http://accounts.govzones.localhost:5173",
+    "VOTE_ORIGIN": "http://vote.govzones.localhost:5173",
+    "TURNSTILE_SITE_KEY": "",
+    "DEV_GATEWAY": "1"
+  },
+  "d1_databases": [
+    {
+      "binding": "DIRECTORY",
+      "database_name": "govzones-directory",
+      "database_id": "00000000-0000-4000-8000-0000000000d1",
+      "migrations_dir": "migrations/directory"
+    }
+  ],
+  "kv_namespaces": [{ "binding": "PUBLIC_CACHE", "id": "00000000000000000000000000000c01" }],
+  "services": [
+    { "binding": "GROUPS_PUBLIC", "service": "govzones-groups-dev" },
+    // Dev gateway only: routes *.govzones.localhost hosts to the separate Workers.
+    { "binding": "DEV_ACCOUNTS", "service": "govzones-accounts-dev" },
+    { "binding": "DEV_BALLOT", "service": "govzones-ballot-ph-00-dev" },
+    { "binding": "DEV_ADMIN", "service": "govzones-admin-dev" },
+    { "binding": "DEV_ACCOUNTS_ADMIN", "service": "govzones-accounts-dev", "entrypoint": "AccountsAdmin" },
+    { "binding": "DEV_GROUP_OPS", "service": "govzones-groups-dev", "entrypoint": "GroupOps" },
+    { "binding": "DEV_AGGREGATOR", "service": "govzones-aggregator-ph-dev", "entrypoint": "AggregatorOps" }
+  ],
+  "env": {
+    "staging": {
+      "name": "govzones-web-staging",
+      "routes": [{ "pattern": "staging.govzones.com", "custom_domain": true }],
+      "vars": {
+        "ENVIRONMENT": "staging",
+        "PUBLIC_ORIGIN": "https://staging.govzones.com",
+        "ACCOUNTS_ORIGIN": "https://accounts.staging.govzones.com",
+        "VOTE_ORIGIN": "https://vote.staging.govzones.com",
+        "TURNSTILE_SITE_KEY": "REPLACE_WITH_TURNSTILE_SITE_KEY",
+        "ROOT_PUBLIC_KEY": "REPLACE_WITH_ROOT_PUBLIC_JWK"
+      },
+      "d1_databases": [
+        {
+          "binding": "DIRECTORY",
+          "database_name": "govzones-directory-staging",
+          "database_id": "REPLACE_WITH_STAGING_DIRECTORY_D1_ID",
+          "migrations_dir": "migrations/directory"
+        }
+      ],
+      "kv_namespaces": [{ "binding": "PUBLIC_CACHE", "id": "REPLACE_WITH_STAGING_PUBLIC_CACHE_KV_ID" }],
+      "services": [{ "binding": "GROUPS_PUBLIC", "service": "govzones-groups-staging" }]
+    },
+    "production": {
+      "name": "govzones-web",
+      "routes": [
+        { "pattern": "govzones.com", "custom_domain": true },
+        { "pattern": "www.govzones.com", "custom_domain": true }
+      ],
+      "vars": {
+        "ENVIRONMENT": "production",
+        "PUBLIC_ORIGIN": "https://govzones.com",
+        "ACCOUNTS_ORIGIN": "https://accounts.govzones.com",
+        "VOTE_ORIGIN": "https://vote.govzones.com",
+        "TURNSTILE_SITE_KEY": "REPLACE_WITH_TURNSTILE_SITE_KEY",
+        "ROOT_PUBLIC_KEY": "REPLACE_WITH_ROOT_PUBLIC_JWK"
+      },
+      "d1_databases": [
+        {
+          "binding": "DIRECTORY",
+          "database_name": "govzones-directory",
+          "database_id": "REPLACE_WITH_DIRECTORY_D1_ID",
+          "migrations_dir": "migrations/directory"
+        }
+      ],
+      "kv_namespaces": [{ "binding": "PUBLIC_CACHE", "id": "REPLACE_WITH_PUBLIC_CACHE_KV_ID" }],
+      "services": [{ "binding": "GROUPS_PUBLIC", "service": "govzones-groups" }]
+    },
+    // TEMPORARY workers.dev preview (scripts/deploy.mjs --env preview; remove with scripts/preview-destroy.mjs).
+    // Test sign-in and a tiny anonymity set: for demos only, never for real ratings.
+    "preview": {
+      "name": "govzones-web-preview",
+      "workers_dev": true,
+      "preview_urls": false,
+      "vars": {
+        "ENVIRONMENT": "preview",
+        "PUBLIC_ORIGIN": "https://govzones-web-preview.qnsub.workers.dev",
+        "ACCOUNTS_ORIGIN": "https://govzones-accounts-preview.qnsub.workers.dev",
+        "VOTE_ORIGIN": "https://govzones-ballot-ph-00-preview.qnsub.workers.dev",
+        "TURNSTILE_SITE_KEY": "",
+        "ROOT_PUBLIC_KEY": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"QED_SDK7LMjZUVQ-7_gzQcp6vLHm_RM0WvgKUwJWy28\",\"y\":\"1NkKg4xTPkWzdBbtZBtikgaxh3DeoStc-XE4QB0kcyY\"}"
+      },
+      "d1_databases": [
+        {
+          "binding": "DIRECTORY",
+          "database_name": "govzones-directory-preview",
+          "database_id": "82566224-b6ab-4092-ab8b-8e2bb052ac78",
+          "migrations_dir": "migrations/directory"
+        }
+      ],
+      "kv_namespaces": [{ "binding": "PUBLIC_CACHE", "id": "0dc616416a9e4b2e892e9279336a699d" }],
+      "services": [{ "binding": "GROUPS_PUBLIC", "service": "govzones-groups-preview" }]
+    }
+  }
+}

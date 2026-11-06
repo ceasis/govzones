@@ -1,0 +1,258 @@
+@import "tailwindcss" source(".");
+
+/*
+ * GovZones visual language.
+ *  - Civic, calm and legible: deep-teal accent, warm gold only for emphasis, generous white space.
+ *  - System typography (no web-font layout shift); strong size/weight hierarchy instead.
+ *  - Ratings are never conveyed by colour alone: the number and its "/ 10" are always printed.
+ *  - Every interactive target is at least 44 px tall. Nothing may overflow at 320 px.
+ */
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-display: var(--font-sans);
+  --color-ink: #0f172a;
+  --color-muted: #4b5873;
+  --color-faint: #8a94a8;
+  --color-line: #d8dee8;
+  --color-paper: #ffffff;
+  --color-canvas: #f3f5f8;
+  --color-sunken: #e9edf3;
+  --color-accent: #0b5c7a;
+  --color-accent-strong: #083f55;
+  --color-accent-soft: #e3f0f5;
+  --color-accent-ink: #ffffff;
+  --color-gold: #b45309;
+  --color-gold-soft: #fdf3e0;
+  --color-warn-bg: #fff7e6;
+  --color-warn-line: #b45309;
+  --color-ok-bg: #ecfdf3;
+  --color-ok-line: #15803d;
+  --color-bad-bg: #fef2f2;
+  --color-bad-line: #b91c1c;
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.05), 0 1px 1px rgb(15 23 42 / 0.03);
+  --shadow-lift: 0 6px 16px -6px rgb(15 23 42 / 0.18), 0 2px 4px rgb(15 23 42 / 0.05);
+  --radius-card: 1rem;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scrollbar-gutter: stable;
+  }
+  body {
+    @apply bg-canvas text-ink antialiased;
+    min-width: 0;
+  }
+  /* Long official agency names must wrap rather than overflow. */
+  h1,
+  h2,
+  h3,
+  p,
+  li,
+  dd,
+  dt,
+  a,
+  span,
+  label,
+  td,
+  th,
+  summary {
+    overflow-wrap: anywhere;
+  }
+  img,
+  svg,
+  video {
+    max-width: 100%;
+  }
+  :focus-visible {
+    outline: 3px solid #f59e0b;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  ::selection {
+    background: var(--color-accent-soft);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ---------- Layout ---------- */
+@utility container-page {
+  @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+}
+@utility hero-band {
+  background:
+    radial-gradient(60rem 30rem at 85% -20%, rgb(255 255 255 / 0.12), transparent 60%),
+    linear-gradient(135deg, #0b5c7a 0%, #0a4b65 55%, #083f55 100%);
+  color: #ffffff;
+}
+@utility eyebrow {
+  @apply text-xs font-bold uppercase tracking-[0.12em] text-accent;
+}
+@utility section-title {
+  @apply text-xl font-extrabold tracking-tight sm:text-2xl;
+}
+
+/* ---------- Surfaces ---------- */
+@utility card {
+  @apply rounded-[1rem] border border-line bg-paper p-4 shadow-[var(--shadow-card)];
+}
+@utility card-hover {
+  @apply transition-[box-shadow,border-color,transform] duration-150 motion-safe:hover:-translate-y-px hover:border-accent/40 hover:shadow-[var(--shadow-lift)];
+}
+@utility card-flat {
+  @apply rounded-[1rem] border border-line bg-paper p-4;
+}
+@utility stat {
+  @apply rounded-[1rem] border border-line bg-paper p-4 shadow-[var(--shadow-card)];
+  & .stat-value {
+    @apply text-2xl font-extrabold tabular-nums tracking-tight sm:text-3xl;
+  }
+  & .stat-label {
+    @apply mt-1 text-sm text-muted;
+  }
+}
+
+/* ---------- Controls ---------- */
+@utility btn {
+  @apply inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-xl px-4 py-2 text-base font-semibold leading-tight transition-colors duration-150;
+  &[disabled],
+  &[aria-disabled="true"] {
+    @apply cursor-not-allowed opacity-60;
+  }
+}
+@utility btn-primary {
+  @apply btn bg-accent text-accent-ink shadow-[inset_0_-2px_0_rgb(0_0_0/0.15)] hover:bg-accent-strong;
+}
+@utility btn-secondary {
+  @apply btn border border-line bg-paper text-ink hover:border-accent/50 hover:bg-accent-soft;
+}
+@utility btn-ghost {
+  @apply btn text-ink hover:bg-accent-soft;
+}
+@utility btn-danger {
+  @apply btn border border-bad-line/60 bg-paper text-bad-line hover:bg-bad-bg;
+}
+@utility btn-on-dark {
+  @apply btn bg-white text-accent-strong hover:bg-accent-soft;
+}
+@utility field {
+  @apply block min-h-11 w-full min-w-0 rounded-xl border border-muted/50 bg-paper px-3 py-2 text-base text-ink shadow-[inset_0_1px_2px_rgb(15_23_42/0.04)] placeholder:text-faint focus:border-accent;
+  &:disabled {
+    @apply bg-sunken text-muted;
+  }
+}
+@utility label {
+  @apply mb-1 block text-sm font-semibold text-ink;
+}
+@utility chip {
+  @apply inline-flex min-h-11 items-center gap-1 rounded-full border border-line bg-paper px-4 text-sm font-medium text-ink transition-colors hover:border-accent hover:bg-accent-soft;
+  &[aria-current="page"],
+  &[aria-pressed="true"] {
+    @apply border-accent bg-accent text-accent-ink;
+  }
+}
+@utility chip-dark {
+  @apply inline-flex min-h-11 items-center gap-1 rounded-full border border-white/35 px-4 text-sm font-semibold text-white transition-colors hover:border-white hover:bg-white/10;
+}
+/* Segmented control: a row of chips that read as one unit. */
+@utility segmented {
+  @apply inline-flex max-w-full flex-wrap gap-1 rounded-xl border border-line bg-sunken p-1;
+  & > * {
+    @apply inline-flex min-h-9 items-center rounded-lg px-3 text-sm font-semibold text-muted;
+  }
+  & > [aria-current="page"],
+  & > [aria-pressed="true"] {
+    @apply bg-paper text-ink shadow-[var(--shadow-card)];
+  }
+}
+@utility badge {
+  @apply inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold;
+}
+
+/* ---------- Messages ---------- */
+@utility notice {
+  @apply rounded-xl border border-warn-line/70 bg-warn-bg p-3 text-sm;
+}
+@utility notice-ok {
+  @apply rounded-xl border border-ok-line/70 bg-ok-bg p-3 text-sm;
+}
+@utility notice-bad {
+  @apply rounded-xl border border-bad-line/70 bg-bad-bg p-3 text-sm;
+}
+@utility link {
+  @apply text-accent underline decoration-1 underline-offset-2 hover:text-accent-strong;
+}
+@utility link-plain {
+  @apply text-ink no-underline hover:text-accent hover:underline;
+}
+
+/* ---------- Score scale (decorative; the number is always printed next to it) ---------- */
+@utility scale-bar {
+  @apply flex h-2 w-full max-w-[9rem] gap-px overflow-hidden rounded-full bg-sunken;
+  & > span {
+    @apply block h-full flex-1 bg-transparent;
+  }
+  & > span[data-on] {
+    @apply bg-accent;
+  }
+}
+
+/* ---------- Long-form pages ---------- */
+@utility prose-civic {
+  & h2 {
+    @apply mt-10 mb-3 text-xl font-extrabold tracking-tight;
+  }
+  & h3 {
+    @apply mt-6 mb-2 text-lg font-bold;
+  }
+  & p,
+  & ul,
+  & ol {
+    @apply mb-3 leading-relaxed;
+  }
+  & ul {
+    @apply list-disc pl-6;
+  }
+  & ol {
+    @apply list-decimal pl-6;
+  }
+  & li {
+    @apply mb-1;
+  }
+  & a {
+    @apply text-accent underline decoration-1 underline-offset-2;
+  }
+  & code {
+    @apply rounded bg-sunken px-1 text-sm;
+  }
+  & strong {
+    @apply font-bold;
+  }
+}
+
+/* ---------- Motion ---------- */
+@keyframes gz-progress {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+@utility progress-bar {
+  @apply fixed inset-x-0 top-0 z-50 h-0.5 overflow-hidden bg-transparent;
+  & > span {
+    @apply block h-full w-1/2 bg-accent;
+    animation: gz-progress 1s ease-in-out infinite;
+  }
+}

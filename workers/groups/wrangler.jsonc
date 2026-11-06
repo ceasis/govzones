@@ -1,0 +1,83 @@
+/**
+ * GovZones Group Manager Worker. No public route of its own: public reads are proxied by the
+ * web Worker; membership changes arrive only over the GroupMembership RPC entrypoint.
+ * Secrets: ROOT_SIGNING_KEY (ECDSA P-256 private JWK).
+ */
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "govzones-groups-dev",
+  "main": "./index.ts",
+  "compatibility_date": "2026-10-23",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "observability": { "enabled": true },
+  "triggers": { "crons": ["0 * * * *"] },
+  "vars": {
+    "ACTIVE_COUNTRIES": "PH",
+    // Local development only: lets a handful of test identities form a counted group.
+    "MIN_ANONYMITY_SET": "2",
+    "ROOT_VALIDITY_HOURS": "168",
+    "ROOT_GRACE_MINUTES": "60",
+    "ROOT_PUBLIC_KEY": "REPLACED_BY_SETUP_SCRIPT"
+  },
+  "d1_databases": [
+    {
+      "binding": "GROUPS_DB",
+      "database_name": "govzones-groups",
+      "database_id": "00000000-0000-4000-8000-0000000000d3",
+      "migrations_dir": "../../migrations/groups"
+    }
+  ],
+  "r2_buckets": [{ "binding": "GROUP_SNAPSHOTS", "bucket_name": "govzones-group-snapshots-dev" }],
+  "env": {
+    "staging": {
+      "name": "govzones-groups-staging",
+      "triggers": { "crons": ["0 * * * *"] },
+      "vars": {
+        "ACTIVE_COUNTRIES": "PH",
+        "MIN_ANONYMITY_SET": "100",
+        "ROOT_VALIDITY_HOURS": "168",
+        "ROOT_GRACE_MINUTES": "60",
+        "ROOT_PUBLIC_KEY": "REPLACE_WITH_ROOT_PUBLIC_JWK"
+      },
+      "d1_databases": [
+        { "binding": "GROUPS_DB", "database_name": "govzones-groups-staging", "database_id": "REPLACE_WITH_STAGING_GROUPS_D1_ID", "migrations_dir": "../../migrations/groups" }
+      ],
+      "r2_buckets": [{ "binding": "GROUP_SNAPSHOTS", "bucket_name": "govzones-group-snapshots-staging" }]
+    },
+    "production": {
+      "name": "govzones-groups",
+      "triggers": { "crons": ["0 * * * *"] },
+      "vars": {
+        "ACTIVE_COUNTRIES": "PH",
+        "MIN_ANONYMITY_SET": "100",
+        "ROOT_VALIDITY_HOURS": "168",
+        "ROOT_GRACE_MINUTES": "60",
+        "ROOT_PUBLIC_KEY": "REPLACE_WITH_ROOT_PUBLIC_JWK"
+      },
+      "d1_databases": [
+        { "binding": "GROUPS_DB", "database_name": "govzones-groups", "database_id": "REPLACE_WITH_GROUPS_D1_ID", "migrations_dir": "../../migrations/groups" }
+      ],
+      "r2_buckets": [{ "binding": "GROUP_SNAPSHOTS", "bucket_name": "govzones-group-snapshots" }]
+    },
+    // TEMPORARY workers.dev preview (scripts/deploy.mjs --env preview; remove with scripts/preview-destroy.mjs).
+    // Test sign-in and a tiny anonymity set: for demos only, never for real ratings.
+    "preview": {
+      "name": "govzones-groups-preview",
+      "workers_dev": false,
+      "preview_urls": false,
+      "triggers": { "crons": ["0 * * * *"] },
+      "vars": {
+        "ACTIVE_COUNTRIES": "PH",
+        "MIN_ANONYMITY_SET": "2",
+        "ROOT_VALIDITY_HOURS": "168",
+        "ROOT_GRACE_MINUTES": "60",
+        "ROOT_PUBLIC_KEY": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"QED_SDK7LMjZUVQ-7_gzQcp6vLHm_RM0WvgKUwJWy28\",\"y\":\"1NkKg4xTPkWzdBbtZBtikgaxh3DeoStc-XE4QB0kcyY\"}"
+      },
+      "d1_databases": [
+        { "binding": "GROUPS_DB", "database_name": "govzones-groups-preview", "database_id": "d9c6266e-5dac-460d-9479-8b3d5158b23a", "migrations_dir": "../../migrations/groups" }
+      ],
+      "r2_buckets": [{ "binding": "GROUP_SNAPSHOTS", "bucket_name": "govzones-group-snapshots-preview" }]
+    }
+  }
+}

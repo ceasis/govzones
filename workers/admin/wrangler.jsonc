@@ -1,0 +1,74 @@
+/**
+ * GovZones admin console (admin.govzones.com). Protect the hostname with a Cloudflare Access
+ * application (MFA required). Roles are assigned explicitly in ADMIN_ROLES.
+ * No votes or identity DB bindings: ballots/enrollments are reached only through RPC entrypoints.
+ */
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "govzones-admin-dev",
+  "main": "./index.ts",
+  "compatibility_date": "2026-10-23",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "observability": { "enabled": true },
+  "vars": {
+    "ADMIN_ORIGIN": "http://admin.govzones.localhost:5173",
+    "PUBLIC_ORIGIN": "http://govzones.localhost:5173",
+    // Local development only; refused on any non-localhost hostname.
+    "ADMIN_DEV_BYPASS": "1",
+    "ACCESS_TEAM_DOMAIN": "",
+    "ACCESS_AUD": "",
+    "ADMIN_ROLES": "{}"
+  },
+  "d1_databases": [
+    { "binding": "DIRECTORY", "database_name": "govzones-directory", "database_id": "00000000-0000-4000-8000-0000000000d1", "migrations_dir": "../../migrations/directory" }
+  ],
+  "services": [
+    { "binding": "BALLOT_MOD", "service": "govzones-ballot-ph-00-dev", "entrypoint": "BallotModeration" },
+    { "binding": "ACCOUNTS_ADMIN", "service": "govzones-accounts-dev", "entrypoint": "AccountsAdmin" },
+    { "binding": "GROUP_OPS", "service": "govzones-groups-dev", "entrypoint": "GroupOps" },
+    { "binding": "AGGREGATOR", "service": "govzones-aggregator-ph-dev", "entrypoint": "AggregatorOps" }
+  ],
+  "env": {
+    "staging": {
+      "name": "govzones-admin-staging",
+      "routes": [{ "pattern": "admin.staging.govzones.com", "custom_domain": true }],
+      "vars": {
+        "ADMIN_ORIGIN": "https://admin.staging.govzones.com",
+        "PUBLIC_ORIGIN": "https://staging.govzones.com",
+        "ACCESS_TEAM_DOMAIN": "REPLACE_WITH_TEAM.cloudflareaccess.com",
+        "ACCESS_AUD": "REPLACE_WITH_ACCESS_APPLICATION_AUD",
+        "ADMIN_ROLES": "{}"
+      },
+      "d1_databases": [
+        { "binding": "DIRECTORY", "database_name": "govzones-directory-staging", "database_id": "REPLACE_WITH_STAGING_DIRECTORY_D1_ID", "migrations_dir": "../../migrations/directory" }
+      ],
+      "services": [
+        { "binding": "BALLOT_MOD", "service": "govzones-ballot-ph-00-staging", "entrypoint": "BallotModeration" },
+        { "binding": "ACCOUNTS_ADMIN", "service": "govzones-accounts-staging", "entrypoint": "AccountsAdmin" },
+        { "binding": "GROUP_OPS", "service": "govzones-groups-staging", "entrypoint": "GroupOps" },
+        { "binding": "AGGREGATOR", "service": "govzones-aggregator-ph-staging", "entrypoint": "AggregatorOps" }
+      ]
+    },
+    "production": {
+      "name": "govzones-admin",
+      "routes": [{ "pattern": "admin.govzones.com", "custom_domain": true }],
+      "vars": {
+        "ADMIN_ORIGIN": "https://admin.govzones.com",
+        "PUBLIC_ORIGIN": "https://govzones.com",
+        "ACCESS_TEAM_DOMAIN": "REPLACE_WITH_TEAM.cloudflareaccess.com",
+        "ACCESS_AUD": "REPLACE_WITH_ACCESS_APPLICATION_AUD",
+        "ADMIN_ROLES": "{}"
+      },
+      "d1_databases": [
+        { "binding": "DIRECTORY", "database_name": "govzones-directory", "database_id": "REPLACE_WITH_DIRECTORY_D1_ID", "migrations_dir": "../../migrations/directory" }
+      ],
+      "services": [
+        { "binding": "BALLOT_MOD", "service": "govzones-ballot-ph-00", "entrypoint": "BallotModeration" },
+        { "binding": "ACCOUNTS_ADMIN", "service": "govzones-accounts", "entrypoint": "AccountsAdmin" },
+        { "binding": "GROUP_OPS", "service": "govzones-groups", "entrypoint": "GroupOps" },
+        { "binding": "AGGREGATOR", "service": "govzones-aggregator-ph", "entrypoint": "AggregatorOps" }
+      ]
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "version": "4.13.0",
+  "files": {
+    "semaphore-16.wasm": "06df31461d17db86897fc234f0e6e5f5e2f6add1b8c821b5c6ae75030b3e0d7c",
+    "semaphore-16.zkey": "948763c7315a337b7722c0344a28af4be66fbbc618474d6dbe9036e799d1a3b5",
+    "semaphore-17.wasm": "c8a9fa66d491cc6a14daba40060d53659c99ca9d9b1277cc48c1a174cb5947c4",
+    "semaphore-17.zkey": "5c750bf1fdec2b1bb4b04f66a4e64c08215c9f3f862ffb3f35de511cc6417112",
+    "semaphore-18.wasm": "70e2ac9d915265708742c4d8dbbe20662b22f701d9e78745c5bc2a0262093317",
+    "semaphore-18.zkey": "ef278d79e103d6944be80428ad65acdef22bdd6fe32f95a8f0ed182e1b6601ce",
+    "semaphore-19.wasm": "18f939aca1233779a75c8bbfb69f0ffb6a146a88b2c1160cb9265f9357f1a706",
+    "semaphore-19.zkey": "7329ed1332c163788b36da10be73ac3eb004fbf1b8b308e1778cf815dd209e3b",
+    "semaphore-20.wasm": "6f71e55586929e520e76027ebe067daac8b41e2f4b8057313a5fd0304e1e44ee",
+    "semaphore-20.zkey": "33f9a067a80c7daf90e085449073613a9559a1904dd40aeb6d603afb7988c2cc"
+  }
+}

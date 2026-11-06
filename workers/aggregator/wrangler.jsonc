@@ -1,0 +1,62 @@
+/**
+ * GovZones aggregate consumer for the PH vote shard. Re-derives totals from COUNTED rows only.
+ * No identity bindings.
+ */
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "govzones-aggregator-ph-dev",
+  "main": "./index.ts",
+  "compatibility_date": "2026-10-23",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "observability": { "enabled": true },
+  "triggers": { "crons": ["* * * * *"] },
+  "vars": { "COUNTRY_CODE": "PH", "DEV_TOOLS": "1" },
+  "d1_databases": [
+    { "binding": "VOTES_DB", "database_name": "govzones-votes-ph-00", "database_id": "00000000-0000-4000-8000-0000000000d4", "migrations_dir": "../../migrations/votes" },
+    { "binding": "DIRECTORY", "database_name": "govzones-directory", "database_id": "00000000-0000-4000-8000-0000000000d1", "migrations_dir": "../../migrations/directory" }
+  ],
+  "kv_namespaces": [{ "binding": "PUBLIC_CACHE", "id": "00000000000000000000000000000c01" }],
+  "queues": {
+    "consumers": [{ "queue": "govzones-aggregate-ph-dev", "max_batch_size": 50, "max_batch_timeout": 2, "max_retries": 10 }]
+  },
+  "env": {
+    "staging": {
+      "name": "govzones-aggregator-ph-staging",
+      "triggers": { "crons": ["* * * * *"] },
+      "vars": { "COUNTRY_CODE": "PH" },
+      "d1_databases": [
+        { "binding": "VOTES_DB", "database_name": "govzones-votes-ph-00-staging", "database_id": "REPLACE_WITH_STAGING_VOTES_D1_ID", "migrations_dir": "../../migrations/votes" },
+        { "binding": "DIRECTORY", "database_name": "govzones-directory-staging", "database_id": "REPLACE_WITH_STAGING_DIRECTORY_D1_ID", "migrations_dir": "../../migrations/directory" }
+      ],
+      "kv_namespaces": [{ "binding": "PUBLIC_CACHE", "id": "REPLACE_WITH_STAGING_PUBLIC_CACHE_KV_ID" }],
+      "queues": { "consumers": [{ "queue": "govzones-aggregate-ph-staging", "max_batch_size": 50, "max_batch_timeout": 5, "max_retries": 10 }] }
+    },
+    "production": {
+      "name": "govzones-aggregator-ph",
+      "triggers": { "crons": ["* * * * *"] },
+      "vars": { "COUNTRY_CODE": "PH" },
+      "d1_databases": [
+        { "binding": "VOTES_DB", "database_name": "govzones-votes-ph-00", "database_id": "REPLACE_WITH_VOTES_PH_00_D1_ID", "migrations_dir": "../../migrations/votes" },
+        { "binding": "DIRECTORY", "database_name": "govzones-directory", "database_id": "REPLACE_WITH_DIRECTORY_D1_ID", "migrations_dir": "../../migrations/directory" }
+      ],
+      "kv_namespaces": [{ "binding": "PUBLIC_CACHE", "id": "REPLACE_WITH_PUBLIC_CACHE_KV_ID" }],
+      "queues": { "consumers": [{ "queue": "govzones-aggregate-ph", "max_batch_size": 50, "max_batch_timeout": 5, "max_retries": 10 }] }
+    },
+    // TEMPORARY workers.dev preview (scripts/deploy.mjs --env preview; remove with scripts/preview-destroy.mjs).
+    // Test sign-in and a tiny anonymity set: for demos only, never for real ratings.
+    "preview": {
+      "name": "govzones-aggregator-ph-preview",
+      "workers_dev": false,
+      "preview_urls": false,
+      "triggers": { "crons": ["* * * * *"] },
+      "vars": { "COUNTRY_CODE": "PH" },
+      "d1_databases": [
+        { "binding": "VOTES_DB", "database_name": "govzones-votes-ph-00-preview", "database_id": "9e24184f-737f-47f2-bb81-ff28a5c7451f", "migrations_dir": "../../migrations/votes" },
+        { "binding": "DIRECTORY", "database_name": "govzones-directory-preview", "database_id": "82566224-b6ab-4092-ab8b-8e2bb052ac78", "migrations_dir": "../../migrations/directory" }
+      ],
+      "kv_namespaces": [{ "binding": "PUBLIC_CACHE", "id": "0dc616416a9e4b2e892e9279336a699d" }],
+      "queues": { "consumers": [{ "queue": "govzones-aggregate-ph-preview", "max_batch_size": 50, "max_batch_timeout": 5, "max_retries": 10 }] }
+    }
+  }
+}

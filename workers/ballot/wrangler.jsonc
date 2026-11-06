@@ -1,0 +1,102 @@
+/**
+ * GovZones Anonymous Ballot Worker, Philippines shard 00 (vote.govzones.com).
+ * Cookie-free. NO identity DB, session store, OAuth secret or enrollment-audit bindings.
+ * Observability is disabled so request metadata (IP, timing, payload) is not retained by the app.
+ */
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "govzones-ballot-ph-00-dev",
+  "main": "./index.ts",
+  "compatibility_date": "2026-10-23",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "observability": { "enabled": false },
+  "vars": {
+    "COUNTRY_CODE": "PH",
+    "PUBLIC_ORIGINS": "http://govzones.localhost:5173",
+    "COOLDOWN_DAYS": "30",
+    "CHALLENGE_TTL_SECONDS": "300",
+    "ROOT_PUBLIC_KEY": "REPLACED_BY_SETUP_SCRIPT"
+  },
+  "d1_databases": [
+    {
+      "binding": "VOTES_DB",
+      "database_name": "govzones-votes-ph-00",
+      "database_id": "00000000-0000-4000-8000-0000000000d4",
+      "migrations_dir": "../../migrations/votes"
+    },
+    {
+      "binding": "DIRECTORY",
+      "database_name": "govzones-directory",
+      "database_id": "00000000-0000-4000-8000-0000000000d1",
+      "migrations_dir": "../../migrations/directory"
+    }
+  ],
+  "services": [{ "binding": "GROUP_ROOTS", "service": "govzones-groups-dev", "entrypoint": "GroupRoots" }],
+  "queues": { "producers": [{ "binding": "AGGREGATE_QUEUE", "queue": "govzones-aggregate-ph-dev" }] },
+  "durable_objects": { "bindings": [{ "name": "BALLOT_COORDINATOR", "class_name": "BallotCoordinator" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["BallotCoordinator"] }],
+  "ratelimits": [{ "name": "CHALLENGE_LIMITER", "namespace_id": "1001", "simple": { "limit": 60, "period": 60 } }],
+  "env": {
+    "staging": {
+      "name": "govzones-ballot-ph-00-staging",
+      "routes": [{ "pattern": "vote.staging.govzones.com", "custom_domain": true }],
+      "vars": {
+        "COUNTRY_CODE": "PH",
+        "PUBLIC_ORIGINS": "https://staging.govzones.com",
+        "COOLDOWN_DAYS": "30",
+        "CHALLENGE_TTL_SECONDS": "300",
+        "ROOT_PUBLIC_KEY": "REPLACE_WITH_ROOT_PUBLIC_JWK"
+      },
+      "d1_databases": [
+        { "binding": "VOTES_DB", "database_name": "govzones-votes-ph-00-staging", "database_id": "REPLACE_WITH_STAGING_VOTES_D1_ID", "migrations_dir": "../../migrations/votes" },
+        { "binding": "DIRECTORY", "database_name": "govzones-directory-staging", "database_id": "REPLACE_WITH_STAGING_DIRECTORY_D1_ID", "migrations_dir": "../../migrations/directory" }
+      ],
+      "services": [{ "binding": "GROUP_ROOTS", "service": "govzones-groups-staging", "entrypoint": "GroupRoots" }],
+      "queues": { "producers": [{ "binding": "AGGREGATE_QUEUE", "queue": "govzones-aggregate-ph-staging" }] },
+      "durable_objects": { "bindings": [{ "name": "BALLOT_COORDINATOR", "class_name": "BallotCoordinator" }] },
+      "ratelimits": [{ "name": "CHALLENGE_LIMITER", "namespace_id": "2001", "simple": { "limit": 60, "period": 60 } }]
+    },
+    "production": {
+      "name": "govzones-ballot-ph-00",
+      "routes": [{ "pattern": "vote.govzones.com", "custom_domain": true }],
+      "vars": {
+        "COUNTRY_CODE": "PH",
+        "PUBLIC_ORIGINS": "https://govzones.com,https://www.govzones.com",
+        "COOLDOWN_DAYS": "30",
+        "CHALLENGE_TTL_SECONDS": "300",
+        "ROOT_PUBLIC_KEY": "REPLACE_WITH_ROOT_PUBLIC_JWK"
+      },
+      "d1_databases": [
+        { "binding": "VOTES_DB", "database_name": "govzones-votes-ph-00", "database_id": "REPLACE_WITH_VOTES_PH_00_D1_ID", "migrations_dir": "../../migrations/votes" },
+        { "binding": "DIRECTORY", "database_name": "govzones-directory", "database_id": "REPLACE_WITH_DIRECTORY_D1_ID", "migrations_dir": "../../migrations/directory" }
+      ],
+      "services": [{ "binding": "GROUP_ROOTS", "service": "govzones-groups", "entrypoint": "GroupRoots" }],
+      "queues": { "producers": [{ "binding": "AGGREGATE_QUEUE", "queue": "govzones-aggregate-ph" }] },
+      "durable_objects": { "bindings": [{ "name": "BALLOT_COORDINATOR", "class_name": "BallotCoordinator" }] },
+      "ratelimits": [{ "name": "CHALLENGE_LIMITER", "namespace_id": "3001", "simple": { "limit": 60, "period": 60 } }]
+    },
+    // TEMPORARY workers.dev preview (scripts/deploy.mjs --env preview; remove with scripts/preview-destroy.mjs).
+    // Test sign-in and a tiny anonymity set: for demos only, never for real ratings.
+    "preview": {
+      "name": "govzones-ballot-ph-00-preview",
+      "workers_dev": true,
+      "preview_urls": false,
+      "vars": {
+        "COUNTRY_CODE": "PH",
+        "PUBLIC_ORIGINS": "https://govzones-web-preview.qnsub.workers.dev",
+        "COOLDOWN_DAYS": "30",
+        "CHALLENGE_TTL_SECONDS": "300",
+        "ROOT_PUBLIC_KEY": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"QED_SDK7LMjZUVQ-7_gzQcp6vLHm_RM0WvgKUwJWy28\",\"y\":\"1NkKg4xTPkWzdBbtZBtikgaxh3DeoStc-XE4QB0kcyY\"}"
+      },
+      "d1_databases": [
+        { "binding": "VOTES_DB", "database_name": "govzones-votes-ph-00-preview", "database_id": "9e24184f-737f-47f2-bb81-ff28a5c7451f", "migrations_dir": "../../migrations/votes" },
+        { "binding": "DIRECTORY", "database_name": "govzones-directory-preview", "database_id": "82566224-b6ab-4092-ab8b-8e2bb052ac78", "migrations_dir": "../../migrations/directory" }
+      ],
+      "services": [{ "binding": "GROUP_ROOTS", "service": "govzones-groups-preview", "entrypoint": "GroupRoots" }],
+      "queues": { "producers": [{ "binding": "AGGREGATE_QUEUE", "queue": "govzones-aggregate-ph-preview" }] },
+      "durable_objects": { "bindings": [{ "name": "BALLOT_COORDINATOR", "class_name": "BallotCoordinator" }] },
+      "ratelimits": [{ "name": "CHALLENGE_LIMITER", "namespace_id": "4001", "simple": { "limit": 60, "period": 60 } }]
+    }
+  }
+}

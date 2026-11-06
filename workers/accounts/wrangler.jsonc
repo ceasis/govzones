@@ -1,0 +1,114 @@
+/**
+ * GovZones Account / Eligibility Worker (accounts.govzones.com).
+ * Host-only session cookies live ONLY here. NO votes database binding.
+ * Sign-in is by e-mailed one-time code (Cloudflare Email Sending binding EMAIL; EMAIL_FROM must be on an enabled sending domain).
+ * Secrets: SUBJECT_PEPPER, TURNSTILE_SECRET.
+ */
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "govzones-accounts-dev",
+  "main": "./index.ts",
+  "compatibility_date": "2026-10-23",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "observability": { "enabled": true },
+  "triggers": { "crons": ["*/15 * * * *"] },
+  "vars": {
+    "ACCOUNTS_ORIGIN": "http://accounts.govzones.localhost:5173",
+    "PUBLIC_ORIGINS": "http://govzones.localhost:5173",
+    "ACTIVE_COUNTRIES": "PH",
+    "COOKIE_SECURE": "0",
+    // Local development only: sign-in codes returned by the API (no mail), instant root publication, no maturity wait.
+    "DEV_EMAIL_CODES": "1",
+    "DEV_INSTANT_EPOCH": "1",
+    "COUNTABLE_MATURITY_HOURS": "0",
+    "RESET_HOLD_DAYS": "365",
+    "REENROLL_HOLD_DAYS": "365",
+    "ENROLL_BURST_PER_HOUR": "500"
+  },
+  "ratelimits": [{ "name": "EMAIL_CODE_LIMITER", "namespace_id": "1101", "simple": { "limit": 10, "period": 60 } }],
+  "d1_databases": [
+    { "binding": "IDENTITY_DB", "database_name": "govzones-identity", "database_id": "00000000-0000-4000-8000-0000000000d2", "migrations_dir": "../../migrations/identity" },
+    { "binding": "DIRECTORY", "database_name": "govzones-directory", "database_id": "00000000-0000-4000-8000-0000000000d1", "migrations_dir": "../../migrations/directory" }
+  ],
+  "r2_buckets": [{ "binding": "WALLET_BACKUPS", "bucket_name": "govzones-wallet-backups-dev" }],
+  "services": [{ "binding": "GROUPS", "service": "govzones-groups-dev", "entrypoint": "GroupMembership" }],
+  "env": {
+    "staging": {
+      "name": "govzones-accounts-staging",
+      "routes": [{ "pattern": "accounts.staging.govzones.com", "custom_domain": true }],
+      "triggers": { "crons": ["*/15 * * * *"] },
+      "vars": {
+        "ACCOUNTS_ORIGIN": "https://accounts.staging.govzones.com",
+        "PUBLIC_ORIGINS": "https://staging.govzones.com",
+        "ACTIVE_COUNTRIES": "PH",
+        "COOKIE_SECURE": "1",
+        "COUNTABLE_MATURITY_HOURS": "72",
+        "RESET_HOLD_DAYS": "365",
+        "REENROLL_HOLD_DAYS": "365",
+        "ENROLL_BURST_PER_HOUR": "500",
+        "EMAIL_FROM": "signin@govzones.com"
+      },
+      "send_email": [{ "name": "EMAIL" }],
+      "ratelimits": [{ "name": "EMAIL_CODE_LIMITER", "namespace_id": "2101", "simple": { "limit": 10, "period": 60 } }],
+      "d1_databases": [
+        { "binding": "IDENTITY_DB", "database_name": "govzones-identity-staging", "database_id": "REPLACE_WITH_STAGING_IDENTITY_D1_ID", "migrations_dir": "../../migrations/identity" },
+        { "binding": "DIRECTORY", "database_name": "govzones-directory-staging", "database_id": "REPLACE_WITH_STAGING_DIRECTORY_D1_ID", "migrations_dir": "../../migrations/directory" }
+      ],
+      "r2_buckets": [{ "binding": "WALLET_BACKUPS", "bucket_name": "govzones-wallet-backups-staging" }],
+      "services": [{ "binding": "GROUPS", "service": "govzones-groups-staging", "entrypoint": "GroupMembership" }]
+    },
+    "production": {
+      "name": "govzones-accounts",
+      "routes": [{ "pattern": "accounts.govzones.com", "custom_domain": true }],
+      "triggers": { "crons": ["*/15 * * * *"] },
+      "vars": {
+        "ACCOUNTS_ORIGIN": "https://accounts.govzones.com",
+        "PUBLIC_ORIGINS": "https://govzones.com,https://www.govzones.com",
+        "ACTIVE_COUNTRIES": "PH",
+        "COOKIE_SECURE": "1",
+        "COUNTABLE_MATURITY_HOURS": "72",
+        "RESET_HOLD_DAYS": "365",
+        "REENROLL_HOLD_DAYS": "365",
+        "ENROLL_BURST_PER_HOUR": "500",
+        "EMAIL_FROM": "signin@govzones.com"
+      },
+      "send_email": [{ "name": "EMAIL" }],
+      "ratelimits": [{ "name": "EMAIL_CODE_LIMITER", "namespace_id": "3101", "simple": { "limit": 10, "period": 60 } }],
+      "d1_databases": [
+        { "binding": "IDENTITY_DB", "database_name": "govzones-identity", "database_id": "REPLACE_WITH_IDENTITY_D1_ID", "migrations_dir": "../../migrations/identity" },
+        { "binding": "DIRECTORY", "database_name": "govzones-directory", "database_id": "REPLACE_WITH_DIRECTORY_D1_ID", "migrations_dir": "../../migrations/directory" }
+      ],
+      "r2_buckets": [{ "binding": "WALLET_BACKUPS", "bucket_name": "govzones-wallet-backups" }],
+      "services": [{ "binding": "GROUPS", "service": "govzones-groups", "entrypoint": "GroupMembership" }]
+    },
+    // TEMPORARY workers.dev preview (scripts/deploy.mjs --env preview; remove with scripts/preview-destroy.mjs).
+    // Test sign-in and a tiny anonymity set: for demos only, never for real ratings.
+    "preview": {
+      "name": "govzones-accounts-preview",
+      "workers_dev": true,
+      "preview_urls": false,
+      "triggers": { "crons": ["*/15 * * * *"] },
+      "vars": {
+        "ACCOUNTS_ORIGIN": "https://govzones-accounts-preview.qnsub.workers.dev",
+        "PUBLIC_ORIGINS": "https://govzones-web-preview.qnsub.workers.dev",
+        "ACTIVE_COUNTRIES": "PH",
+        "COOKIE_SECURE": "1",
+        "DEV_INSTANT_EPOCH": "1",
+        "COUNTABLE_MATURITY_HOURS": "0",
+        "RESET_HOLD_DAYS": "365",
+        "REENROLL_HOLD_DAYS": "365",
+        "ENROLL_BURST_PER_HOUR": "500",
+        "EMAIL_FROM": "signin@qnsub.com"
+      },
+      "send_email": [{ "name": "EMAIL" }],
+      "ratelimits": [{ "name": "EMAIL_CODE_LIMITER", "namespace_id": "4101", "simple": { "limit": 10, "period": 60 } }],
+      "d1_databases": [
+        { "binding": "IDENTITY_DB", "database_name": "govzones-identity-preview", "database_id": "cf0e5a6f-9f89-4148-897f-5b9ff99833fb", "migrations_dir": "../../migrations/identity" },
+        { "binding": "DIRECTORY", "database_name": "govzones-directory-preview", "database_id": "82566224-b6ab-4092-ab8b-8e2bb052ac78", "migrations_dir": "../../migrations/directory" }
+      ],
+      "r2_buckets": [{ "binding": "WALLET_BACKUPS", "bucket_name": "govzones-wallet-backups-preview" }],
+      "services": [{ "binding": "GROUPS", "service": "govzones-groups-preview", "entrypoint": "GroupMembership" }]
+    }
+  }
+}
